@@ -1,0 +1,7 @@
+{
+    "max_tokens": 1024,
+    "max_steps": 3,
+    "temperature": 0.2,
+    "timeout": 30.0,
+    "sleeptime": 2.0
+}
