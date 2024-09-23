@@ -3,7 +3,7 @@ import streamlit as st
 from app.utils import generate_answer, load_llm
 from core.types import ThoughtStepsDisplay, BigMessage 
 from .app_config import InputConfig, ENV_FILE_PATH, CONFIG_FILE_PATH
-from core.prompts.think_mark_think import SYSTEM_PROMPT
+from core.prompts.cot import SYSTEM_PROMPT
 
 
 

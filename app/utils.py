@@ -6,7 +6,7 @@ from litellm.types.utils import ModelResponse
 from pydantic import ValidationError
 from core.llms.base_llm import BaseLLM
 from core.types import ThoughtSteps
-from core.prompts.think_mark_think import REVIEW_PROMPT, SYSTEM_PROMPT ,FINAL_ANSWER_PROMPT
+from core.prompts.cot import REVIEW_PROMPT, SYSTEM_PROMPT ,FINAL_ANSWER_PROMPT
 import os
 import time
 from core.utils import parse_with_fallback
