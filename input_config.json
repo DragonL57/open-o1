@@ -3,5 +3,6 @@
     "max_steps": 3,
     "temperature": 0.2,
     "timeout": 30.0,
-    "sleeptime": 2.0
+    "sleeptime": 2.0,
+    "force_max_steps": true
 }

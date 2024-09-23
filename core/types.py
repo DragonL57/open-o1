@@ -30,15 +30,15 @@ class ThoughtStepsDisplay(BaseModel):
 
     
     def md(self):
-        return dedent(f'''
-            {self.step_title}
-            ### Thought
+        return f'''
+            #### {self.step_title}
+            
             {self.thought}
-            ### Answer
+            
             {self.answer}
-            ### Critic
+            
             {self.critic}
-            ''')
+            '''
 
 
 
@@ -56,3 +56,21 @@ class BigMessage(BaseModel):
 class Message(BaseModel):
     role:str
     content:str
+
+class InputConfig(BaseModel):
+    prompt: str = Field(..., description="prompt to use")
+    model: str = Field(..., description="model to use")
+    max_tokens: int = Field(..., description="max tokens to use")
+    temperature: float = Field(..., description="temperature to use")
+    top_p: float = Field(..., description="top p to use")
+    n: int = Field(..., description="number of responses to generate")
+    stream: bool = Field(..., description="whether to stream the response")
+    stop: list[str] | None = Field(..., description="stop sequences")
+    force_max_steps: bool = Field(False, description="force max steps")
+
+    def to_dict(self):
+        return self.model_dump()
+
+    def to_json(self):
+        return json.dumps(self.to_dict())
+

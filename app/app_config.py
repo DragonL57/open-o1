@@ -24,6 +24,7 @@ class InputConfig:
     temperature: float = 0.2
     timeout: float = 30.0
     sleeptime: float = 0.0
+    force_max_steps: bool = True
 
     @classmethod
     def load(cls, env_file=ENV_FILE_PATH, config_file=CONFIG_FILE_PATH):
@@ -46,7 +47,8 @@ class InputConfig:
             max_steps=config_dict.get('max_steps', cls.max_steps),
             temperature=config_dict.get('temperature', cls.temperature),
             timeout=config_dict.get('timeout', cls.timeout),
-            sleeptime=config_dict.get('sleeptime', cls.sleeptime)
+            sleeptime=config_dict.get('sleeptime', cls.sleeptime),
+            force_max_steps=config_dict.get('force_max_steps', cls.force_max_steps)
         )
 
     def save(self, env_file=ENV_FILE_PATH, config_file=CONFIG_FILE_PATH):
@@ -74,7 +76,8 @@ class InputConfig:
             'max_steps': self.max_steps,
             'temperature': self.temperature,
             'timeout': self.timeout,
-            'sleeptime': self.sleeptime
+            'sleeptime': self.sleeptime,
+            'force_max_steps': self.force_max_steps
         }
         with open(config_file, 'w') as f:
             json.dump(config_dict, f, indent=4)

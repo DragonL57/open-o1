@@ -11,10 +11,16 @@ import os
 import time
 from core.utils import parse_with_fallback
 from termcolor import colored
+from app.app_config import InputConfig
+from core.llms.litellm_llm import LLM
+from core.llms.utils import user_message_with_images
+from PIL import Image
+from streamlit.runtime.uploaded_file_manager import UploadedFile
 
 
 
-def generate_answer(messages: list[dict], max_steps: int = 20, llm: BaseLLM = None, sleeptime: float = 0.0, **kwargs):
+
+def generate_answer(messages: list[dict], max_steps: int = 20, llm: BaseLLM = None, sleeptime: float = 0.0, force_max_steps: bool = False, **kwargs):
     thoughts = []
     
     for i in range(max_steps):
@@ -24,13 +30,16 @@ def generate_answer(messages: list[dict], max_steps: int = 20, llm: BaseLLM = No
         
         print(colored(f"{i+1} - {response}", 'yellow'))
 
-        if thought:
-            thoughts.append(thought)
-            messages.append({"role": "assistant", "content": thought.model_dump_json()})
-            messages.append({"role": "user", "content": REVIEW_PROMPT})
+        thoughts.append(thought)
+        messages.append({"role": "assistant", "content": thought.model_dump_json()})
+        yield thought
+                
+        if thought.is_final_answer and not thought.next_step and not force_max_steps:
+            break
+        
+        messages.append({"role": "user", "content": REVIEW_PROMPT})
 
-            yield thought
-            time.sleep(sleeptime)
+        time.sleep(sleeptime)
 
     # Get the final answer after all thoughts are processed
     messages += [{"role": "user", "content": FINAL_ANSWER_PROMPT}]
@@ -65,4 +74,23 @@ def dict_to_markdown(d:dict) -> str:
         md += f"### {key}\n"
         md += f"{value}\n"
     return md
+
+
+
+
+def load_llm(config:InputConfig, tools=None) -> BaseLLM:
+    return LLM(api_key=config.model_api_key, model=config.model_name, tools=tools)
+
+    
+def image_buffer_to_pillow_image(image_buffer:UploadedFile) -> Image.Image:
+    return Image.open(image_buffer)
+
+
+def process_user_input(user_input:str, image:Image.Image=None)->dict:
+    if image:
+        message = [user_message_with_images(user_msg_str=user_input, images=[image])] 
+    else:
+        message = [{"role": "user", "content": user_input}]
+    return message
+
 
