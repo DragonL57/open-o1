@@ -1,22 +1,11 @@
-
-from calendar import c
-from dataclasses import dataclass
-from math import exp
-from shutil import which
 import time
-from webbrowser import get
-from litellm.types.utils import ModelResponse
 import streamlit as st
 from app.utils import generate_answer, load_llm
-from core.types import ThoughtStepsDisplay, ThoughtSteps, BigMessage , Message
+from core.types import ThoughtStepsDisplay, BigMessage 
 from .app_config import InputConfig, ENV_FILE_PATH, CONFIG_FILE_PATH
-from core.llms.base_llm import BaseLLM
-from core.llms.litellm_llm import LLM
-from core.llms.utils import user_message_with_images
-from PIL import Image
 from core.prompts.think_mark_think import SYSTEM_PROMPT
 
-st.set_page_config(page_title="Open-o1", page_icon="🧠", layout="wide")
+
 
 
 def config_sidebar(config:InputConfig) -> InputConfig:
@@ -28,7 +17,7 @@ def config_sidebar(config:InputConfig) -> InputConfig:
     temperature =   st.sidebar.number_input('Temperature: ',value=config.temperature, min_value=0.0, step=0.1, max_value=10.0)
     timeout =       st.sidebar.number_input('Timeout(seconds): ',value=config.timeout, min_value=0.0,step = 1.0)
     sleeptime =     st.sidebar.number_input('Sleep Time(seconds)',value=config.sleeptime, min_value=0.0, step = 1.0, help='Time between requests to avoid hitting rate limit')  
-    force_max_steps = st.sidebar.checkbox('Force Max Steps', value=config.force_max_steps, help="If checked, will generate given number of max steps. If not checked, assistant can stop at few step thinking it has the write answer.") 
+    force_max_steps = st.sidebar.checkbox('Force Max Steps', value=config.force_max_steps, help="If checked, will generate given number of max steps. If not checked, assistant can stop at few step thinking it has the right answer.") 
     
     config.model_name = model_name
     config.model_api_key = model_api_key
@@ -49,6 +38,7 @@ def config_sidebar(config:InputConfig) -> InputConfig:
 
     
 def main():
+    st.set_page_config(page_title="Open-o1", page_icon="🧠", layout="wide")
     st.title('Open-O1')
     st.write('Welcome to Open-O1!')
 
@@ -126,8 +116,10 @@ def main():
                     thoughts.append(step)
 
                     st.write(step.to_thought_steps_display().md())
-                    
+                    # add breakline after each step
+                    st.markdown('---')
                     status.update(label=step.step_title, state="running", expanded=False)
+                    
 
                 status.update(
                     label=f"Thought for {time.time()-start_time:.2f} seconds", state="complete", expanded=False
