@@ -24,7 +24,6 @@ Instructions
 - Generate a json with this schema , keys: thought, step_title, answer, critic, next_step, final_answer
 - Your thinking should happen inside the thought in json 
 - Only one dictionary in the json , Exactly one dictionary in the json object 
-- Should start with ```json and end with ```
 - Very Elaborated Thought process
 
 {
@@ -83,7 +82,6 @@ Instructions
 - Generate a json object with this schema , keys: thought, step_title, answer, next_step
 - Your thinking should happen inside the thought in json 
 - Only one dictionary in the json 
-- Should start with ```json and end with ```
 - Very Elaborated Thought process
 
 
