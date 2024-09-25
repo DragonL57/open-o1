@@ -64,36 +64,29 @@ def main():
         with st.chat_message(message.role):
             
             for thought in message.thoughts:
-                print_thought(thought.to_thought_steps_display(), is_final=False)
+                print_thought(thought, is_final=False)
 
             if message.content:
                 if message.role == 'user':
                     st.markdown(message.content)
                 else:
-                    print_thought(message.content.to_thought_steps_display(), is_final=True)
+                    print_thought(message.content, is_final=True)
 
             
     
-    if prompt := st.chat_input("What is up bro?"):
-        big_message_attr.append(BigMessage(role="user", content=prompt, thoughts=[])) 
+    if user_input := st.chat_input("What is up bro?"):
+        big_message_attr.append(BigMessage(role="user", content=user_input, thoughts=[])) 
         
         with st.chat_message("user"):
-            st.markdown(prompt)
+            st.markdown(user_input)
 
         with st.chat_message("assistant"):
-            messages = [{
-                "role": "system",
-                "content": SYSTEM_PROMPT
-            }]
             
-            messages += [m.to_message() for m in big_message_attr]
             
             thoughts = []
+            messages = [message.to_message() for message in big_message_attr]
             
-            #add json keyword in user message , helps in json output
-            for message in messages:
-                if message["role"] == "user":
-                    message["content"] = f"{message['content']}, json format"
+            messages[-1]['content'] += ", json format" #add json keyword in user message , helps in json output
             
             start_time = time.time()
             
@@ -115,7 +108,7 @@ def main():
 
                     thoughts.append(step)
 
-                    st.write(step.to_thought_steps_display().md())
+                    st.write(step.md())
                     # add breakline after each step
                     st.markdown('---')
                     status.update(label=step.step_title, state="running", expanded=False)
@@ -126,7 +119,7 @@ def main():
                 )
 
             last_step = thoughts.pop()
-            print_thought(last_step.to_thought_steps_display(), is_final=True)
+            print_thought(last_step, is_final=True)
 
             big_message_attr.append(BigMessage(
                 role="assistant", 
