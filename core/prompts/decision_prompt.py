@@ -80,23 +80,17 @@ if its a cot problem, then you will create three prompts in a dict as: ,
 
 
 here are few examples for better undertanting:
-{
-  'problem': 'What is 15 percent of 80?',
-  'decision': 'Direct Answer',
-  'reasoning': 'This is a straightforward calculation that can be done in one or two steps. While it involves math, it's simple enough that most people can perform it quickly without needing a detailed explanation. A direct answer with the result should be sufficient.'
-  'prompts': 
-    {
-      'system_prompt': 'You are a helpful assistant that answers questions'
-    }
-}
 
 {
-  'problem': 'What were the main causes of World War I?',
-  'decision': 'Chain-of-Thought',
-  'reasoning': 'This question requires analyzing multiple historical factors and their interconnections. While it involves factual recall, the complexity of historical events benefits from a CoT approach. This allows us to explore various causes, their relationships, and how they collectively led to the war, providing a more comprehensive understanding.'
-  'prompts': [
+  'problem': 'states users problem',
+  'decision': 'Direct Answer or Chain-of-Thought',
+  'reasoning': 'state why you chose this decision',
+  'prompts': 
     {
-      'system_prompt': 
+      'system_prompt': 'prompt for generating a very good, satisfying answer to the given problem',
+      'review_prompt': 'prompt for reviewing the answer, criticizing it, and suggesting a better one' # not required if decision is cot,
+      'final_answer_prompt': 'prompt for generating a final answer based on previous chain of thoughs, and giving a final answer' # not required if decision is cot,
+    }
 }
 
 
@@ -197,6 +191,7 @@ Conclude with a powerful statement that encapsulates why this solution is the be
 Based on the above guidelines and the nature of the problem, do you recommend using Chain-of-Thought or Direct Answering? Briefly justify your choice.
 
 
+Instructions: 
 ** json Output Format:**
 
 {

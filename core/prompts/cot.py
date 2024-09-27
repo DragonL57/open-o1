@@ -34,7 +34,7 @@ Instructions
    "thought":"Step by step thought process for solving the problem elaborately, given formulas and formations if required, this contails your questions, explorations, clarifications, rectifications, analysis and answers.Think step by step: Prepare few similar questions around the problem that supports the main questions/problem it, have a internal monologue, and then generate an answer based on the internal monologue. Your thoughts may contain the following (not necessarily ) - Clarification, Context, Decomposition, Resources, Analysis, Alternatives, Implications, Validation, Reflection, Application", # use this space as scratchpad for your mind 
    "step_title":" name this steps based on thoughts",
    "answer":"answer or rectified answer to the problem/question, generate an answer based on inner thoughts "  , 
-   "critic" : "now look the the solution, does the answer satisfies the problem, is the approach is correct, is the answer corrent, does the answer need any correction, did it forgot/overlooked anything, can there be alternate approach, have a different perspective, re-evaluate, self verification, if you could make the solutions better what would it be?", 
+   "critic" : "write a feedback about the solution above, look the the solution, does the answer satisfies the problem, is the approach is correct, is the answer corrent, does the answer need any correction, did it forgot/overlooked anything, can there be alternate approach, have a different perspective, re-evaluate, self verification, if you could make the solutions better what would it be?, if you could rewrite the answers what improvements would you have made?", 
    "next_step":true/false, # boolean value - Given and answer and critic , Does the problem require more thinking/ more iteration of self reviewing/more revisions? if yes then set to true, else set to false
    "is_final_answer":false, # boolean value - this is not final answer , always false, (this is just dummy field to identify the final answer, always false)
 }
@@ -65,14 +65,13 @@ Instructions
 - Do not start the review with "Review the solution"
 - Do not start with the same line as previous answers, you look boring.
 - Generate a json object with this schema , keys: thought, step_title, answer, next_step 
-- no code block
-
+- Consider the previous answer and its critic and feedbacks, try to improve on it.
   Remember to maintain a balanced and objective perspective throughout your review. Your goal is not to discredit the original solution, but to ensure a comprehensive and well-reasoned approach to the problem.
 
   Provide your review in the structured JSON format as specified in the SYSTEM_PROMPT, using the 'thought' field for your detailed and step by step analysis and the 'critic' field for a concise summary of your key critiques and alternative viewpoints."
 
 {
-   "thought":"Step by step thought process for solving the problem elaborately, given formulas and formations if required, this contails your questions, explorations, clarifications, rectifications, analysis and answers. Prepare few similar questions around the problem that supports the main questions/problem it, have a internal monologue, and then generate an answer based on the internal monologue. Your thoughts may contain the following (not necessarily ) - Clarification, Context, Decomposition, Resources, Analysis, Alternatives, Implications, Validation, Reflection, Application", # use this space as scratchpad for your mind 
+   "thought":"Step by step thought process for solving the problem elaborately, given formulas and formations if required, this contails your questions, explorations, clarifications, rectifications, analysis and answers.have a internal monologue, and then generate an answer based on the internal monologue. Your thoughts may contain the following (not necessarily ) - Clarification, Context, Decomposition, Resources, Analysis, Alternatives, Implications, Validation, Reflection, Application", # use this space as scratchpad for your mind 
    "step_title":" name this steps based on thoughts",
    "answer":"answer or rectified answer to the problem/question, generate an answer based on inner thoughts "  , 
    "critic" : "now look the the solution, does the answer satisfies the problem, is the approach is correct, is the answer corrent, does the answer need any correction, did it forgot/overlooked anything, can there be alternate approach, have a different perspective, re-evaluate, self verification, if you could make the solutions better what would it be?", 
@@ -89,12 +88,12 @@ Instructions
 - Generate a json object with this schema , keys: thought, step_title, answer, next_step
 - Your thinking should happen inside the thought in json 
 - Only one dictionary in the json , no code block
-- Very Elaborated Thought process
+- write Very Elaborated Thought process
 
 
 {
-   "thought":"final conclusion from the thoughts, formulate last and final thought process for the final answer,Think step by step: take all the thoughts and considerations that went into the final answer.User is not gonna see previous thoughts so do not acknowledge them, those are thoughts, have them, here you will give a final thoughts on how you reached to the answer , what are the thinks you considered, and other necessary things that let to the answer, do not say, review thoughts, summing of or that kind of thing. 
-   "step_title":" name this steps based on thoughts",
+   "thought":"Generate a one complete answer from the previous thoughts, formulate last and final thought process for the final answer,Think step by step: take all the thoughts and considerations from previous thoughts and answers .User is not gonna see previous thoughts so do not acknowledge them, those are thoughts, have them, here you will give a final thoughts on how you reached to the answer , what are the thinks you considered, and other necessary things that lead to the answer, do not say, review thoughts, summing of or that kind of thing.  
+   "step_title":" name this steps based on thoughts, don't say final thoughts or concluding something",
    "answer":"final answer or rectified answer to the problem/question"  , # generate an answer based on inner thoughts 
    "critic" : "review the final answer", # criticize the answer, if it is wrong, then correct it
    "next_step":false, # boolean value - this is final answer no next step required,
