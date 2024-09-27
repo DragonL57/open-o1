@@ -1,12 +1,12 @@
 
 from .cot import REVIEW_PROMPT, SYSTEM_PROMPT ,FINAL_ANSWER_PROMPT
 from .chat_mark_chat import SYSTEM_PROMPT_FOR_CHAT
-from .decision_prompt import COT_OR_DA_PROMPT
+from .decision_prompt import PLAN_SYSTEM_PROMPT
 from .general import HELPFUL_ASSISTANT_PROMPT
 
 
 __all__ = [
-    "COT_OR_DA_PROMPT",
+    "PLAN_SYSTEM_PROMPT",
     "REVIEW_PROMPT",
     "SYSTEM_PROMPT",
     "FINAL_ANSWER_PROMPT",
