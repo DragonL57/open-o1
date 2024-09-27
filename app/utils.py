@@ -19,15 +19,17 @@ from core.llms.litellm_llm import LLM
 from core.llms.utils import user_message_with_images
 from PIL import Image
 from streamlit.runtime.uploaded_file_manager import UploadedFile
-from core.prompts.decision_prompt import COT_OR_DA_PROMPT, COTorDAPromptOutput, Decision
+from core.prompts.decision_prompt import PLAN_SYSTEM_PROMPT, COTorDAPromptOutput, Decision
+from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 
 
 
+@retry(stop=stop_after_attempt(3))
 def cot_or_da_func(problem: str, llm: BaseLLM = None, **kwargs) -> COTorDAPromptOutput:
     
     cot_decision_message = [
-        {"role": "system", "content": COT_OR_DA_PROMPT},
+        {"role": "system", "content": PLAN_SYSTEM_PROMPT},
         {"role": "user", "content": problem}] 
     
     raw_decision_response = llm.chat(messages=cot_decision_message, **kwargs)
@@ -37,10 +39,9 @@ def cot_or_da_func(problem: str, llm: BaseLLM = None, **kwargs) -> COTorDAPrompt
     try:
         decision = json.loads(decision_response)
         cot_or_da = COTorDAPromptOutput(**decision)
-    except (json.JSONDecodeError, ValidationError, KeyError):
-        print(colored("Error parsing LLM's CoT decision. Defaulting to Chain of thought.", 'red'))
-        cot_or_da = COTorDAPromptOutput(problem=problem, decision="Chain-of-Thought", reasoning="Defaulting to Chain-of-Thought") 
-    
+    except (json.JSONDecodeError, ValidationError, KeyError) as e:
+        raise e
+        
     return cot_or_da
 
 
@@ -52,8 +53,7 @@ def get_system_prompt(decision: Decision) -> str:
     else:
         raise ValueError(f"Invalid decision: {decision}")
     
-def set_system_message(messages: list[dict], cot_or_da: COTorDAPromptOutput) -> list[dict]:
-    system_prompt = get_system_prompt(cot_or_da.decision)
+def set_system_message(messages: list[dict], system_prompt: str) -> list[dict]: 
     #check if any system message already exists
     if any(message['role'] == 'system' for message in messages):
         for i, message in enumerate(messages):
@@ -71,7 +71,13 @@ def generate_answer(messages: list[dict], max_steps: int = 20, llm: BaseLLM = No
     cot_or_da = cot_or_da_func(user_message, llm=llm, **kwargs)
     print(colored(f"LLM Decision: {cot_or_da.decision} - Justification: {cot_or_da.reasoning}", 'magenta'))
 
-    MESSAGES = set_system_message(messages, cot_or_da)
+    system_prompt, review_prompt, final_answer_prompt = cot_or_da.prompts.system_prompt, cot_or_da.prompts.review_prompt, cot_or_da.prompts.final_answer_prompt
+
+    system_prompt += f" , {cot.SYSTEM_PROMPT_EXAMPLE_JSON}"
+    review_prompt += f" , {cot.REVIEW_PROMPT_EXAMPLE_JSON}"
+    final_answer_prompt += f" , {cot.FINAL_ANSWER_PROMPT}"
+    
+    MESSAGES = set_system_message(messages, system_prompt)
     
 
     if cot_or_da.decision == Decision.CHAIN_OF_THOUGHT:
@@ -93,12 +99,12 @@ def generate_answer(messages: list[dict], max_steps: int = 20, llm: BaseLLM = No
             if thought.is_final_answer and not thought.next_step and not force_max_steps:
                 break
             
-            MESSAGES.append({"role": "user", "content": cot.REVIEW_PROMPT})
+            MESSAGES.append({"role": "user", "content": f"{thought.critic} {review_prompt} {cot.REVIEW_PROMPT_EXAMPLE_JSON}"})
 
             time.sleep(sleeptime)
 
         # Get the final answer after all thoughts are processed
-        MESSAGES += [{"role": "user", "content": cot.FINAL_ANSWER_PROMPT}]
+        MESSAGES += [{"role": "user", "content": f"{final_answer_prompt} {cot.FINAL_ANSWER_PROMPT}"}]
         
         raw_final_answers = llm.chat(messages=MESSAGES, **kwargs)
         final_answer = raw_final_answers.choices[0].message.content
