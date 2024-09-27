@@ -76,7 +76,7 @@ so if its a DA(direct answer) problem, then you will create a prompts dict
 if its a cot problem, then you will create three prompts in a dict as: ,  
   system_prompt: explaining how to think and describe a outline for solving the prompt, like a mentor.
   review_prompt: analyze the problem and its solutions, and given the solution, criticize it, and then propose a better solution.
-  final_answer_prompt: summarize the solution, and then give a final answer, this answer should be enough to understand the whole solution and clearly state the answer to the question.
+  final_answer_prompt: summarize the solution, and then give a final answer, this answer should be enough to understand the whole solution and clearly state the answer to the question. do not say, review thoughts, summing of or that kind of thing, the generated answer will be sent to user, it shouldn't know about your previous thoughts, and you shouldn't mentions it. Generate a one complete answer from the previous thoughts, formulate last and final thought process for the final answer,Think step by step: take all the thoughts and considerations from previous thoughts and answers .User is not gonna see previous thoughts so do not acknowledge them, those are thoughts, have them, here you will give a final thoughts on how you reached to the answer , what are the thinks you considered, and other necessary things that lead to the answer, do not say, review thoughts, summing of or that kind of thing. 
 
 
 here are few examples for better undertanting:
