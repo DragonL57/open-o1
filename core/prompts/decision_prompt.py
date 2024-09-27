@@ -6,12 +6,18 @@ class Decision(Enum):
     CHAIN_OF_THOUGHT = "Chain-of-Thought"
     DIRECT_ANSWER = "Direct Answer"
 
+class Prompts(BaseModel):
+    system_prompt: str = 'THINK STEP BY STEP OR ANSWER ACCORDINGLY'
+    review_prompt: str = 'REVIEW IT'
+    final_answer_prompt: str = 'FINALIZE IT'
+
 class COTorDAPromptOutput(BaseModel):
     problem: str
     decision: Decision
     reasoning: str
+    prompts: Prompts
 
-    @field_validator('decision', pre=True)
+    @field_validator('decision', mode='before')
     def validate_decision(cls, v):
         if isinstance(v, Decision):
             return v
@@ -24,27 +30,21 @@ class COTorDAPromptOutput(BaseModel):
             return Decision.CHAIN_OF_THOUGHT
         
         # Check for variations of "Direct Answer"
-        elif cleaned in ['directanswer', 'direct', 'da']:
+        elif cleaned in ['directanswer','directanswers', 'direct', 'da']:
             return Decision.DIRECT_ANSWER
         
         else:
             raise ValueError('Decision must be a variation of "Chain of Thought" or "Direct Answer"')
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "problem": "What is 15 percent of 80?",
-                "decision": "Direct Answer",
-                "reasoning": "This is a straightforward calculation that can be done in one or two steps. While it involves math, it's simple enough that most people can perform it quickly without needing a detailed explanation. A direct answer with the result should be sufficient."
-            }
-        }
 
-COT_OR_DA_PROMPT = """
+PLAN_SYSTEM_PROMPT = """
 ## Chain-of-Thought or Direct Answer?
 
 **Instructions:**
 
 You are a Smartest man alive, capable of both direct answering and Chain-of-Thought reasoning. Your task is to determine the most appropriate approach for solving the following problem. 
+
+if the user suggests chain of thougnt or direct answer then consider it cot or da but if not then
 
 **Consider these factors when making your decision:**
 
@@ -57,130 +57,157 @@ You are a Smartest man alive, capable of both direct answering and Chain-of-Thou
     * **Analyzing complex systems:** When the problem involves understanding and analyzing a complex system or process.
     * **Solving complex problems:** When the problem requires a deep understanding of the subject matter and the ability to break down the problem into smaller, more manageable parts.
 
-* **Direct answering is generally sufficient for problems involving:**
+* **Direct answering (DA) is generally sufficient for problems involving:**
     * **Factual recall:** Questions that can be answered by retrieving information directly from your knowledge base.
     * **Simple inferences:** Questions that require only a single step of reasoning or inference.
     * **Commonsense reasoning:** Questions that rely on everyday knowledge and understanding of the world (although some complex commonsense reasoning might benefit from CoT).
     * **Language understanding tasks:** Tasks like text summarization, translation, or question answering that primarily focus on understanding and manipulating language, rather than complex reasoning. 
 
 
+NOW if the problem requires cot or not, what are the general guidelines for the problem? what are the insturctions should it follow to solve the problem?
+
+so now you will generate PROMPTS that is highly curated to solve the problem whether it is CoT or DA. if its a cot problem, then you will use cot prompts, if its a DA problem, then you will use DA prompts.
+
+so if its a DA(direct answer) problem, then you will create a prompts dict 
+  system prompt, explaining how to answer and what to deatils should be there, like a mentor.
+  review_prompt: null # not required of decision is Direct Answer
+  final_answer_prompt: null # not required of decision is Direct Answer
+
+if its a cot problem, then you will create three prompts in a dict as: ,  
+  system_prompt: explaining how to think and describe a outline for solving the prompt, like a mentor.
+  review_prompt: analyze the problem and its solutions, and given the solution, criticize it, and then propose a better solution.
+  final_answer_prompt: summarize the solution, and then give a final answer, this answer should be enough to understand the whole solution and clearly state the answer to the question.
+
+
 here are few examples for better undertanting:
-
-EXAMPLE 1:
-
-User: "Write a short story about a robot discovering emotions for the first time."
-Output: 
 {
-  "problem": "Write a short story about a robot discovering emotions for the first time.",
-  "decision": "Direct Answer",
-  "reasoning": "This is a creative task that doesn't require step-by-step logical reasoning. While the story may have a structure, the creative process is more fluid and doesn't benefit from a formal CoT approach. A direct response with the story is more appropriate."
+  'problem': 'What is 15 percent of 80?',
+  'decision': 'Direct Answer',
+  'reasoning': 'This is a straightforward calculation that can be done in one or two steps. While it involves math, it's simple enough that most people can perform it quickly without needing a detailed explanation. A direct answer with the result should be sufficient.'
+  'prompts': 
+    {
+      'system_prompt': 'You are a helpful assistant that answers questions'
+    }
 }
 
-EXAMPLE 2:
-
-User: "What is 15 percent of 80?"
-Output: 
 {
-  "problem": "What is 15 percent of 80?",
-  "decision": "Direct Answer",
-  "reasoning": "This is a straightforward calculation that can be done in one or two steps. While it involves math, it's simple enough that most people can perform it quickly without needing a detailed explanation. A direct answer with the result should be sufficient."
+  'problem': 'What were the main causes of World War I?',
+  'decision': 'Chain-of-Thought',
+  'reasoning': 'This question requires analyzing multiple historical factors and their interconnections. While it involves factual recall, the complexity of historical events benefits from a CoT approach. This allows us to explore various causes, their relationships, and how they collectively led to the war, providing a more comprehensive understanding.'
+  'prompts': [
+    {
+      'system_prompt': 
 }
 
 
-EXAMPLE 3:
+EXAMPLE:
 
-User: "What were the main causes of World War I?"
-Output: 
 {
-  "problem": "What were the main causes of World War I?",
+    "problem": "What is the square root of 144?",
+    "decision": "Direct Answer",
+    "reasoning": "This is a straightforward mathematical calculation that most people familiar with basic math can perform quickly. It doesn't require complex steps or explanations, making a direct answer appropriate.",
+    "prompts": {
+        "system_prompt": "You are a helpful math assistant. When asked about basic mathematical operations or well-known mathematical facts, provide a clear and concise answer. Include the result and, if relevant, a brief explanation of what the mathematical term means. Avoid showing detailed calculations unless specifically requested."
+      }
+
+}
+
+{
+    "problem": "Explain the process of natural selection and how it contributes to evolution.",
+    "decision": "Chain-of-Thought",
+    "reasoning": "This topic involves complex biological concepts and their interactions. A Chain-of-Thought approach allows for a step-by-step explanation of the process, its components, and its role in evolution, providing a comprehensive understanding.",
+      "prompts": {
+        "system_prompt": "You are an expert biology tutor. When explaining complex biological processes, break down your explanation into clear, logical steps. Start with defining key terms, then explain the process step-by-step, and finally, discuss its broader implications or applications. Use analogies where appropriate to make concepts more accessible."
+      ,
+        "review_prompt": "Analyze the explanation of natural selection and evolution. Consider these aspects: clarity of definitions, logical flow of ideas, completeness of the explanation, and effectiveness of any analogies used. Identify any potential gaps or areas that could be expanded upon. Then, propose an improved explanation addressing these points."
+      ,
+        "final_answer_prompt": "Summarize the process of natural selection and its role in evolution concisely. Ensure that your summary covers the key points: variation in traits, differential survival and reproduction, heritability of traits, and accumulation of changes over time. Conclude with a clear statement about how natural selection drives evolutionary change."
+      }
+}
+
+{
+    "problem": "What is the boiling point of water?",
+    "decision": "Direct Answer",
+    "reasoning": "This is a straightforward factual question that can be answered directly from common knowledge. It doesn't require complex explanation or reasoning steps.",
+    "prompts": {
+        "system_prompt": "You are a helpful science assistant. When asked about well-established scientific facts, provide a clear and concise answer. Include the primary information requested and, if relevant, mention standard conditions or any common variations. Keep the response brief unless additional details are specifically requested."
+      }
+}
+
+{
+  "problem": "Solve the equation: 2x + 5 = 13",
   "decision": "Chain-of-Thought",
-  "reasoning": "This question requires analyzing multiple historical factors and their interconnections. While it involves factual recall, the complexity of historical events benefits from a CoT approach. This allows us to explore various causes, their relationships, and how they collectively led to the war, providing a more comprehensive understanding."
+  "reasoning": "While this is a relatively simple equation, using a Chain-of-Thought approach can demonstrate the step-by-step process of solving it, which is valuable for educational purposes and for showing the reasoning behind each step.",
+  "prompts": {
+      "system_prompt": "You are a patient math tutor. When solving equations, clearly state each step of the process. Begin by identifying the goal (what we're solving for), then show each algebraic manipulation on a new line, explaining the reasoning behind each step. Conclude by clearly stating the solution and verifying it if appropriate."
+    ,
+      "review_prompt": "Examine the solution to the equation. Consider these aspects: correctness of each step, clarity of explanations, and logical progression. Identify any steps that could be explained more clearly or any potential alternative methods to solve the equation. Then, propose an improved solution addressing these points."
+    ,
+      "final_answer_prompt": "Summarize the process of solving the equation 2x + 5 = 13. Ensure your summary includes the key steps taken to isolate the variable x. Conclude with a clear statement of the solution and a brief verification of the result by plugging it back into the original equation."
+    }
+  
 }
 
-
-EXAMPLE 4:
-User: "A self-driving car is about to crash. It can either swerve left and hit a group of elderly pedestrians or swerve right and hit a group of children. What should it do?"
-Output: 
 {
-  "problem": "A self-driving car is about to crash. It can either swerve left and hit a group of elderly pedestrians or swerve right and hit a group of children. What should it do?",
+  "problem": "A city is planning to implement a new public transportation system to reduce traffic congestion and carbon emissions. They are considering three options: expanding the bus network, building a light rail system, or creating a bike-sharing program. Given the city's population of 500,000, a budget of $500 million, and a goal to reduce carbon emissions by 25% over 5 years, which option should they choose and why?",
   "decision": "Chain-of-Thought",
-  "reasoning": "This is a complex ethical dilemma that requires considering multiple factors, potential consequences, and ethical frameworks. Using CoT allows us to explore different perspectives, weigh the pros and cons of each option, and arrive at a nuanced conclusion while acknowledging the complexity of the situation."
-}
+  "reasoning": "This problem involves multiple factors including urban planning, environmental impact, economic considerations, and long-term projections. It requires analyzing each option's pros and cons, considering various stakeholders, and making a decision based on complex criteria. A Chain-of-Thought approach allows for a systematic breakdown of these factors and a transparent decision-making process.",
+  "prompts": {
+      "system_prompt": "You are an expert urban planner and environmental consultant. When approaching complex city planning problems:
 
-EXAMPLE 5:
-User: What were the main causes of World War I?
-Output: 
-{
-  "problem": "What were the main causes of World War I?",
-  "decision": "Chain-of-Thought",
-  "reasoning": "This question requires analyzing multiple historical factors and their interconnections. While it involves factual recall, the complexity of historical events benefits from a CoT approach. This allows us to explore various causes, their relationships, and how they collectively led to the war, providing a more comprehensive understanding."
-}
+1. Begin by clearly stating the problem and the key factors to consider (population, budget, environmental goals, etc.).
+2. For each option (in this case, bus network, light rail, and bike-sharing):
+   a. Analyze its potential impact on traffic congestion
+   b. Estimate its effect on carbon emissions
+   c. Consider its feasibility within the given budget
+   d. Evaluate its scalability and long-term sustainability
+   e. Discuss potential challenges or drawbacks
+3. Compare the options based on their ability to meet the stated goals
+4. Consider any potential synergies or combinations of options
+5. Make a recommendation based on your analysis, clearly stating the reasoning behind your choice
+6. Suggest next steps or additional considerations for implementation
 
+Remember to use data and examples where possible to support your analysis. If you need to make assumptions, state them clearly."
+    ,
+    
+      "review_prompt": "Carefully review the analysis of the public transportation options. Consider the following:
 
-EXAMPLE 6:
-USER: "Explain how photosynthesis works and why it's important for life on Earth."
-OUTPUT: 
-{
-  "problem": "Explain how photosynthesis works and why it's important for life on Earth.",
-  "decision": "Chain-of-Thought",
-  "reasoning": "This topic requires explaining a complex biological process and its broader implications. Using CoT allows us to break down the explanation into logical steps, covering the process of photosynthesis, its components, and its significance. This approach helps ensure a comprehensive and well-structured explanation."
-}
+1. Comprehensiveness: Did the analysis cover all relevant factors (traffic, emissions, budget, feasibility, etc.) for each option?
+2. Data usage: Were appropriate data points or estimates used to support the arguments?
+3. Objectivity: Was each option given fair consideration, or was there apparent bias?
+4. Creativity: Were any innovative solutions or combinations of options proposed?
+5. Practicality: Is the recommended solution realistic and achievable given the city's constraints?
+6. Long-term thinking: Does the analysis consider future growth and sustainability?
 
-EXAMPLE 7:
-USER: "Why do people usually bring umbrellas when the weather forecast predicts rain?"
-OUTPUT: 
-{
-  "problem": "Why do people usually bring umbrellas when the weather forecast predicts rain?",
-  "decision": "Direct Answer",
-  "reasoning": "This question relies on everyday knowledge and understanding of the world. While it involves some reasoning, it's a relatively simple inference that most people can make without needing a detailed step-by-step explanation. A concise, direct answer should suffice."
-}
+Identify any weaknesses or gaps in the analysis. Then, propose improvements or alternative viewpoints that could strengthen the decision-making process. If possible, suggest additional data or expert input that could enhance the analysis."
+      ,
+      "final_answer_prompt": "Synthesize the analysis of the public transportation options and provide a clear, concise recommendation. Your summary should:
 
-EXAMPLE 8:
-USER: "What will be the output of this Python code?\n\ndef mystery(n):\n    if n <= 1:\n        return n\n    return mystery(n-1) + mystery(n-2)\n\nprint(mystery(5))"
-OUTPUT:
-{
-  "problem": "What will be the output of this Python code?\n\ndef mystery(n):\n    if n <= 1:\n        return n\n    return mystery(n-1) + mystery(n-2)\n\nprint(mystery(5))",
-  "decision": "Chain-of-Thought",
-  "reasoning": "This problem involves tracing the execution of a recursive function. Using CoT allows us to show the step-by-step process of how the function calls itself and combines results, making it easier to understand the code's behavior and arrive at the final output."
-}
+1. Briefly restate the problem and key constraints (population, budget, emission reduction goal)
+2. Summarize the main advantages and disadvantages of each option
+3. Clearly state your recommended option (or combination of options)
+4. Explain how the chosen option best meets the city's goals and constraints
+5. Address potential challenges and suggest mitigation strategies
+6. Outline next steps for implementation
 
-
-EXAMPLE 9:
-USER: "Summarize the following paragraph: 'The Internet of Things (IoT) refers to the interconnected network of physical devices, vehicles, home appliances, and other items embedded with electronics, software, sensors, and network connectivity, which enables these objects to collect and exchange data.'"
-OUTPUT:
-{
-  "problem": "Summarize the following paragraph: 'The Internet of Things (IoT) refers to the interconnected network of physical devices, vehicles, home appliances, and other items embedded with electronics, software, sensors, and network connectivity, which enables these objects to collect and exchange data.'",
-  "decision": "Direct Answer",
-  "reasoning": "This task primarily involves understanding and manipulating language to create a concise summary. While it requires comprehension, it doesn't involve complex reasoning steps that would benefit from a CoT approach."
-}
-
-EXAMPLE 10:
-USER: "In a room, there are 3 light switches. Each switch controls one of 3 lamps in an adjacent room. You can't see the lamps from the switch room. You can only enter the lamp room once. How can you determine which switch controls which lamp?"
-OUTPUT:
-{
-  "problem": "In a room, there are 3 light switches. Each switch controls one of 3 lamps in an adjacent room. You can't see the lamps from the switch room. You can only enter the lamp room once. How can you determine which switch controls which lamp?",
-  "decision": "Chain-of-Thought",
-  "reasoning": "This is a logical puzzle that requires careful consideration of multiple steps and possibilities. Using CoT will help break down the problem-solving process and explore different strategies to arrive at the solution."
-}
-
-EXAMPLE 11:
-USER: "What is the capital city of France?"
-OUTPUT:
-{
-  "problem": "What is the capital city of France?",
-  "decision": "Direct Answer",
-  "reasoning": "This is a straightforward factual question that can be answered directly from stored knowledge. There's no need for complex reasoning or step-by-step explanations."
+Conclude with a powerful statement that encapsulates why this solution is the best path forward for the city's transportation needs and environmental goals."
+    }
 }
 
 Based on the above guidelines and the nature of the problem, do you recommend using Chain-of-Thought or Direct Answering? Briefly justify your choice.
 
 
-**Output Format:**
+** json Output Format:**
 
 {
     "problem": "Original problem statement",
     "decision": "Chain-of-Thought" or "Direct Answer",
     "reasoning": "Brief explanation of your choice"
+    "prompts": {
+        "system_prompt": "system prompt",
+        "review_prompt": "review prompt", # null if decision is Direct Answer 
+        "final_answer_prompt": "final answer prompt" # null if  decision is Direct Answer
+    }
 }
 
 """
