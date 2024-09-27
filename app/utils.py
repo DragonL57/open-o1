@@ -20,12 +20,12 @@ from core.llms.utils import user_message_with_images
 from PIL import Image
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 from core.prompts.decision_prompt import PLAN_SYSTEM_PROMPT, COTorDAPromptOutput, Decision
-from tenacity import retry, stop_after_attempt, wait_random_exponential
+from tenacity import retry, stop_after_attempt, wait_incrementing
 
 
 
 
-@retry(stop=stop_after_attempt(3))
+@retry(stop=stop_after_attempt(3), wait=wait_incrementing())
 def cot_or_da_func(problem: str, llm: BaseLLM = None, **kwargs) -> COTorDAPromptOutput:
     
     cot_decision_message = [
