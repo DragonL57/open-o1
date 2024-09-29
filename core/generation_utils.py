@@ -1,16 +1,9 @@
 import json
-import re
-import sys
-from turtle import color
 from typing import Generator
-from textwrap import dedent
-from litellm.types.utils import ModelResponse
 from pydantic import ValidationError
 from core.llms.base_llm import BaseLLM
 from core.prompts import cot
 from core.types import ThoughtSteps, ThoughtStepsDisplay
-from core.prompts import REVIEW_PROMPT, SYSTEM_PROMPT ,FINAL_ANSWER_PROMPT, HELPFUL_ASSISTANT_PROMPT
-import os
 import time
 from core.utils import parse_with_fallback
 from termcolor import colored
@@ -25,7 +18,7 @@ from tenacity import retry, stop_after_attempt, wait_incrementing
 
 
 
-@retry(stop=stop_after_attempt(3), wait=wait_incrementing())
+@retry(stop=stop_after_attempt(3), wait=wait_incrementing(increment=1000))
 def cot_or_da_func(problem: str, llm: BaseLLM = None, **kwargs) -> COTorDAPromptOutput:
     
     cot_decision_message = [
@@ -45,13 +38,6 @@ def cot_or_da_func(problem: str, llm: BaseLLM = None, **kwargs) -> COTorDAPrompt
     return cot_or_da
 
 
-def get_system_prompt(decision: Decision) -> str:
-    if decision == Decision.CHAIN_OF_THOUGHT:
-        return cot.SYSTEM_PROMPT
-    elif decision == Decision.DIRECT_ANSWER:
-        return HELPFUL_ASSISTANT_PROMPT
-    else:
-        raise ValueError(f"Invalid decision: {decision}")
     
 def set_system_message(messages: list[dict], system_prompt: str) -> list[dict]: 
     #check if any system message already exists
@@ -75,7 +61,7 @@ def generate_answer(messages: list[dict], max_steps: int = 20, llm: BaseLLM = No
 
     system_prompt += f" , {cot.SYSTEM_PROMPT_EXAMPLE_JSON}"
     review_prompt += f" , {cot.REVIEW_PROMPT_EXAMPLE_JSON}"
-    final_answer_prompt += f" , {cot.FINAL_ANSWER_PROMPT}"
+    final_answer_prompt += f" , {cot.FINAL_ANSWER_EXAMPLE_JSON}"
     
     MESSAGES = set_system_message(messages, system_prompt)
     
@@ -99,12 +85,12 @@ def generate_answer(messages: list[dict], max_steps: int = 20, llm: BaseLLM = No
             if thought.is_final_answer and not thought.next_step and not force_max_steps:
                 break
             
-            MESSAGES.append({"role": "user", "content": f"{thought.critic} {review_prompt} {cot.REVIEW_PROMPT_EXAMPLE_JSON}"})
+            MESSAGES.append({"role": "user", "content": f"{review_prompt} {thought.critic}"})
 
             time.sleep(sleeptime)
 
         # Get the final answer after all thoughts are processed
-        MESSAGES += [{"role": "user", "content": f"{final_answer_prompt} {cot.FINAL_ANSWER_PROMPT}"}]
+        MESSAGES += [{"role": "user", "content": f"{final_answer_prompt}"}]
         
         raw_final_answers = llm.chat(messages=MESSAGES, **kwargs)
         final_answer = raw_final_answers.choices[0].message.content
