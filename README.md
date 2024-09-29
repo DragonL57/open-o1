@@ -4,6 +4,8 @@ It thinks like o1
 
 ## TODO
 
+Todo
+
 [ ] Add fallback llms 
 [ ] Better error handling
 [ ] Add Tools (web, math, code)
@@ -26,6 +28,15 @@ streamlit run app.py
 ```
 
 HAVE FUN.
+
+## FIndings
+
+Although this project tries to mimic openai's o1,  many times it falls short in generating and better reflections on previous answers, and that i thinks comes from the lack of such kind of training data that used to train the models (other models before o1), these models are probably not trained for fixing mistakes with better reasoning.  
+
+for example: here a `cerebras/llama3.1-70b` models jumps back and forth between count of "r" s in Straberry as 2 and 3. Even when having second thoughts, It doesn't sticks to its reasoning and because of the model bias it generates wrong answers. may be prompting can solve, but training with such data would be better.
+![wrong answer formation due to model bias](src/error-image.png)
+
+
 
 ## Helpful Papers
 
