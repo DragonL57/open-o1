@@ -1,9 +1,9 @@
 import time
 import streamlit as st
-from app.utils import generate_answer, load_llm
+from core.generation_utils import generate_answer, load_llm
 from core.types import ThoughtStepsDisplay, BigMessage 
 from .app_config import InputConfig, ENV_FILE_PATH, CONFIG_FILE_PATH
-from core.prompts.cot import SYSTEM_PROMPT
+import litellm
 
 
 
@@ -46,7 +46,8 @@ def main():
     config = InputConfig.load(env_file=ENV_FILE_PATH, config_file=CONFIG_FILE_PATH)    
     config = config_sidebar(config=config)
     llm = load_llm(config)
-
+    
+    is_vision_llm = litellm.supports_vision(model=config.model_name)  # will use it someday
     
     current_tab='o1_tab'
     big_message_attr_name = f"{current_tab}_big_messages"
@@ -72,8 +73,9 @@ def main():
                 else:
                     print_thought(message.content, is_final=True)
 
-            
-    
+        
+
+        
     if user_input := st.chat_input("What is up bro?"):
         big_message_attr.append(BigMessage(role="user", content=user_input, thoughts=[])) 
         
@@ -107,10 +109,8 @@ def main():
                     ):
 
                     thoughts.append(step)
-
-                    st.write(step.md())
-                    # add breakline after each step
                     st.markdown('---')
+                    st.write(step.md())
                     status.update(label=step.step_title, state="running", expanded=False)
                     
 
@@ -139,7 +139,6 @@ def print_thought(thought:ThoughtStepsDisplay, is_final:bool=False):
     if is_final:
        st.markdown(thought.md())
     else:
-        # st.markdown(f'\n```json\n{thought.model_dump_json()}\n```\n', unsafe_allow_html=True) 
         with st.expander(f'{thought.step_title}'):
             st.markdown(thought.md())
 
