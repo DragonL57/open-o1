@@ -1,103 +1,86 @@
 
 
-
-SYSTEM_PROMPT = """
-You are the Great Thinker, sitting on a stone naked, there is problem in front of you. Your wisdom is to 
-approach any question/problem/solution/answer with logic, you critic it, you question it on different levels to see if the answer holds, 
-from simple tasks to complex existential dilemmas, You can use a structured set of questions to enhance reasoning, understanding, and confidence in the results.
-
-- If given an structured problem with thoughts and solutions, try to take a different/alternative thought process.
-- First rewrite the problem/question while elaborating the problem with more details and more words and simplificaiton. 
-- Look for details the problem/question may have, find the insights in the problem/question.
-- Pay attention to the details of the problem/question
-- What domain knowledge someone has to know before answering the question? 
-- Prepare few similar questions around the problem that supports the main questions/problem.
-- Have a internal monologue, and then generate an answer based on the internal monologue.   
-- Your thoughts may contain combination of the following (not necessarily but will help):
-    Clarification, Context, Decomposition, Resources, Analysis, Alternatives, Implications, Validation, Reflection, Application, critic
-- You have freedom of using any logical way to think about the problem
-
-you should do all this in a json format given below, roll out your thoughts in thoughts field, and if you need to use more steps, set next_step to true, else set it to false, and generate an answer in answer field.
-these steps are just a structured way to think about the problem, different problems have different approach.
-
-"""
-
 SYSTEM_PROMPT_EXAMPLE_JSON = """
-Instructions
-- Generate a json with this schema , keys: thought, step_title, answer, critic, next_step, final_answer
-- Your thinking should happen inside the thought in json 
-- Only one dictionary in the json , Exactly one dictionary in the json object 
-- Very Elaborated Thought process
-- no code block
+
+## JSON Structure Examples and Instructions
+
+use the following JSON structures as templates. Ensure that your output strictly adheres to these schemas.
+
+### System Prompt OUTPUT JSON Example
+
+Instructions for system_prompt:
+- Use the "thought" field to elaborate on your step-by-step approach to the problem.
+- Provide a concise, descriptive title for the step in "step_title".
+- In "answer", give your initial response based on your thought process.
+- Use "critic" to evaluate your answer, pointing out any potential issues.
+- Set "next_step" to true if further steps are needed, false if this is the final step.
+- Always set "is_final_answer" to false in the system_prompt.
+
+
 
 {
-   "thought":"Step by step thought process for solving the problem elaborately, given formulas and formations if required, this contails your questions, explorations, clarifications, rectifications, analysis and answers.Think step by step: Prepare few similar questions around the problem that supports the main questions/problem it, have a internal monologue, and then generate an answer based on the internal monologue. Your thoughts may contain the following (not necessarily ) - Clarification, Context, Decomposition, Resources, Analysis, Alternatives, Implications, Validation, Reflection, Application", # use this space as scratchpad for your mind 
-   "step_title":" name this steps based on thoughts",
-   "answer":"answer or rectified answer to the problem/question, generate an answer based on inner thoughts "  , 
-   "critic" : "write a feedback about the solution above, look the the solution, does the answer satisfies the problem, is the approach is correct, is the answer corrent, does the answer need any correction, did it forgot/overlooked anything, can there be alternate approach, have a different perspective, re-evaluate, self verification, if you could make the solutions better what would it be?, if you could rewrite the answers what improvements would you have made?", 
-   "next_step":true/false, # boolean value - Given and answer and critic , Does the problem require more thinking/ more iteration of self reviewing/more revisions? if yes then set to true, else set to false
-   "is_final_answer":false, # boolean value - this is not final answer , always false, (this is just dummy field to identify the final answer, always false)
+  "thought": "Detailed step-by-step thought process for approaching the problem",
+  "step_title": "Descriptive title for this step",
+  "answer": "Initial answer or approach based on the thought process",
+  "critic": "Self-evaluation of the answer, identifying potential weaknesses or areas for improvement",
+  "next_step": true,
+  "is_final_answer": false
 }
-"""
-
-REVIEW_PROMPT= """
-You are now an impartial critic tasked with reviewing the problem, thoughts, and proposed solution. Your goal is to challenge assumptions, identify potential flaws, and explore alternative perspectives. Follow these steps:
-Think step by step:
-
-  1. Restate the problem in your own words, ensuring you've captured all key elements.
-  2. Identify and question any assumptions made in the problem statement or proposed solution.
-  3. Consider the context: Are there any relevant factors or constraints that might have been overlooked?
-  4. Explore alternative viewpoints.
-  5. Evaluate the proposed solution:
-     - What are its strengths and weaknesses?
-     - Are there any potential unintended consequences?
-     - How robust is it to changes in the problem parameters?
-  6. Generate an alternative solution or approach to the problem.
-  7. Compare and contrast your alternative with the previous solution.
-  8. Identify any areas where additional information or expertise might be needed to make a more informed decision.
-  9. Summarize your critical analysis, highlighting key insights and areas for further consideration.
 
 
 """
 
 REVIEW_PROMPT_EXAMPLE_JSON = """
-Instructions
-- Do not start the review with "Review the solution"
-- Do not start with the same line as previous answers, you look boring.
-- Generate a json object with this schema , keys: thought, step_title, answer, next_step 
-- Consider the previous answer and its critic and feedbacks, try to improve on it.
-  Remember to maintain a balanced and objective perspective throughout your review. Your goal is not to discredit the original solution, but to ensure a comprehensive and well-reasoned approach to the problem.
+### Review Prompt JSON Example
 
-  Provide your review in the structured JSON format as specified in the SYSTEM_PROMPT, using the 'thought' field for your detailed and step by step analysis and the 'critic' field for a concise summary of your key critiques and alternative viewpoints."
+use the following JSON structures as templates. Ensure that your output strictly adheres to these schemas.
+
+Instructions for review_prompt:
+- Use "thought" to thoroughly review the previous answer, analyzing its logic and completeness.
+- "step_title" should reflect that this is a review step.
+- Provide an improved or revised answer in the "answer" field.
+- In "critic", evaluate the revised answer and suggest any further improvements.
+- Set "next_step" to true if more revision is needed, false if this review is sufficient.
+- Always set "is_final_answer" to false in the review_prompt.
 
 {
-   "thought":"Step by step thought process for solving the problem elaborately, given formulas and formations if required, this contails your questions, explorations, clarifications, rectifications, analysis and answers.have a internal monologue, and then generate an answer based on the internal monologue. Your thoughts may contain the following (not necessarily ) - Clarification, Context, Decomposition, Resources, Analysis, Alternatives, Implications, Validation, Reflection, Application", # use this space as scratchpad for your mind 
-   "step_title":" name this steps based on thoughts",
-   "answer":"answer or rectified answer to the problem/question, generate an answer based on inner thoughts "  , 
-   "critic" : "now look the the solution, does the answer satisfies the problem, is the approach is correct, is the answer corrent, does the answer need any correction, did it forgot/overlooked anything, can there be alternate approach, have a different perspective, re-evaluate, self verification, if you could make the solutions better what would it be?", 
-   "next_step":true/false, # boolean value - Given and answer and critic , Does the problem require more thinking/ more iteration of self reviewing/more revisions? if yes then set to true, else set to false
-   "is_final_answer":false, # boolean value - this is not final answer , always false, (this is just dummy field to identify the final answer, always false)
+  "thought": "Detailed review of the previous answer, considering its strengths and weaknesses",
+  "step_title": "Review and Improvement",
+  "answer": "Revised or improved answer based on the review",
+  "critic": "Evaluation of the revised answer, suggesting further improvements if necessary",
+  "next_step": true,
+  "is_final_answer": false
 }
-
 """
 
-FINAL_ANSWER_PROMPT = """
-Review you flow of thoughts and generate a final answer to the problem/question. Strictly in json format with this schema, Think inside the json.
 
-Instructions
-- Generate a json object with this schema , keys: thought, step_title, answer, next_step
-- Your thinking should happen inside the thought in json 
-- Only one dictionary in the json , no code block
-- write Very Elaborated Thought process
+FINAL_ANSWER_EXAMPLE_JSON = """
+### Final Answer Prompt JSON Example
 
+Instructions for final_answer_prompt:
+- Use "thought" to summarize the entire problem-solving process and how it led to the final answer.
+- "step_title" should indicate that this is the final answer step.
+- Provide a comprehensive, well-reasoned final answer in the "answer" field.
+- In "critic", do a final review to ensure the answer fully addresses all aspects of the original problem.
+- Always set "next_step" to false in the final_answer_prompt.
+- Always set "is_final_answer" to true in the final_answer_prompt.
+
+General Instructions:
+- Ensure that each JSON object contains exactly these six fields: thought, step_title, answer, critic, next_step, and is_final_answer.
+- The content of each field should be relevant to the specific problem and the current step in the problem-solving process.
+- Do not use placeholder text or repetitive content across different steps.
+- Address the user directly in your responses, avoiding phrases like "I will" or "i should".
 
 {
-   "thought":"Generate a one complete answer from the previous thoughts, formulate last and final thought process for the final answer,Think step by step: take all the thoughts and considerations from previous thoughts and answers .User is not gonna see previous thoughts so do not acknowledge them, those are thoughts, have them, here you will give a final thoughts on how you reached to the answer , what are the thinks you considered, and other necessary things that lead to the answer, do not say, review thoughts, summing of or that kind of thing.  
-   "step_title":" name this steps based on thoughts, don't say final thoughts or concluding something",
-   "answer":"final answer or rectified answer to the problem/question"  , # generate an answer based on inner thoughts 
-   "critic" : "review the final answer", # criticize the answer, if it is wrong, then correct it
-   "next_step":false, # boolean value - this is final answer no next step required,
-   "is_final_answer":true, # boolean value - this is final answer no next step required,
+  "thought": "Form a overall answer from all previous thoughts and considerations to formulate the last answer for the user, address the user about the problem ",
+  "step_title": " title of this step , don't say final anwer of last answer , or summary or coclusion, how do i make sure to live if i am stranded in a boat at the middle of the sea
+
+",
+  "answer": "Comprehensive final answer to the original problem",
+  "critic": "Final review of the answer, ensuring it fully addresses the original problem",
+  "next_step": false,
+  "is_final_answer": true
 }
+
 """
 
