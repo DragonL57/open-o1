@@ -7,9 +7,9 @@ It thinks like o1
 Todo
 
 [ ] Add fallback llms 
-[ ] Better error handling
+[ ] Better error handling 
 [ ] Add Tools (web, math, code)
-[ ] Make cli 
+[ ] Make cli
 [ ] better prompts for mathematical reasoning/reviewing
 
 ## What it does
