@@ -2,8 +2,6 @@ name: Sync to Hugging Face hub
 on:
   push:
     branches: [main]
-
-  # to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
@@ -14,7 +12,8 @@ jobs:
         with:
           fetch-depth: 0
           lfs: true
-      - name: Push to hub
+
+      - name: Force Push to hub
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: git push https://tikendraw:$HF_TOKEN@huggingface.co/spaces/tikendraw/open-o1 main
+        run: git push --force https://tikendraw:$HF_TOKEN@huggingface.co/spaces/tikendraw/open-o1 main
