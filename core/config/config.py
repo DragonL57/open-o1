@@ -9,7 +9,7 @@ class InputConfig:
     model_name: str = 'openai/gpt-3.5-turbo'
     model_api_key: str = 'sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
     max_tokens: int = 1024
-    max_steps: int = 10
+    max_steps: int = 3
     temperature: float = 0.2
     timeout: float = 30.0
     sleeptime: float = 0.0
