@@ -18,7 +18,7 @@ from tenacity import retry, stop_after_attempt, wait_incrementing
 
 
 
-@retry(stop=stop_after_attempt(3), wait=wait_incrementing(increment=1000))
+@retry(stop=stop_after_attempt(3), wait=wait_incrementing(increment=5))
 def cot_or_da_func(problem: str, llm: BaseLLM = None, **kwargs) -> COTorDAPromptOutput:
     
     cot_decision_message = [
@@ -91,6 +91,8 @@ def generate_answer(messages: list[dict], max_steps: int = 20, llm: BaseLLM = No
 
         # Get the final answer after all thoughts are processed
         MESSAGES += [{"role": "user", "content": f"{final_answer_prompt}"}]
+        
+        kwargs['max_tokens'] = kwargs.get('max_tokens', 1000) *  3 # giving more tokens to the final answer
         
         raw_final_answers = llm.chat(messages=MESSAGES, **kwargs)
         final_answer = raw_final_answers.choices[0].message.content
