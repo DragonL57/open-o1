@@ -18,8 +18,6 @@ Todo
 - Mathematical reasoning, symbolic reasoning and semi-symbolic reasoning kind of tasks generally improves with chain of thought, but direct answer is good for factual recall, simple inferences, commonsense reasoning, language understanding tasks.
 
 ## Live Demo
-
-
 Open-o1 
 * [Streamlit](https://open-o1.streamlit.app/)
 * [Huggingface](https://huggingface.co/spaces/tikendraw/open-o1)
