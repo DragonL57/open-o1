@@ -1,3 +1,16 @@
+---
+title: Open O1
+emoji: 🦀
+colorFrom: gray
+colorTo: indigo
+sdk: streamlit
+sdk_version: 1.38.0
+app_file: app.py
+pinned: false
+license: apache-2.0
+short_description: mimics openai-o1
+---
+
 # Open-o1
 
 It thinks like o1
