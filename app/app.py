@@ -1,5 +1,7 @@
+from calendar import c
 from operator import call
 import time
+from numpy import save
 import streamlit as st
 from core.generation_utils import generate_answer, load_llm
 from core.types import ThoughtStepsDisplay, BigMessage 
@@ -14,7 +16,10 @@ def star_repo():
 
 def config_sidebar(config:InputConfig) -> InputConfig:
     
-    _ = st.button("Star the Repo!", callback=star_repo)
+    star = st.sidebar.button("Star the Repo!")
+    
+    if star:
+        star_repo()
     
     
     st.sidebar.header('Configuration')
@@ -36,14 +41,21 @@ def config_sidebar(config:InputConfig) -> InputConfig:
     config.sleeptime = sleeptime
     config.force_max_steps = force_max_steps
     
-
-    if st.sidebar.button('Save config'):
+    c1, c2 = st.sidebar.columns(2)
+    
+    with c1:
+        save_config = c1.button('Save config')
+    with c2:
+        delete_key = c2.button('Delete Key')
+        
+    if save_config:
         config.save(env_file=ENV_FILE_PATH, config_file=CONFIG_FILE_PATH)
         st.sidebar.success('Config saved!')
 
-    if st.sidebar.button('Delete Key'):
-        os.remove(ENV_FILE_PATH)
+    if delete_key:
         config.model_api_key = ''
+        config.save(env_file=ENV_FILE_PATH, config_file=CONFIG_FILE_PATH)
+        config = InputConfig.load(env_file=ENV_FILE_PATH, config_file=CONFIG_FILE_PATH)
         st.sidebar.success('Key deleted!')
         
     return config
