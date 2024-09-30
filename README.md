@@ -20,11 +20,24 @@ Todo
 ## Installation
 
 ```bash
+#clone the repo
 git clone https://github.com/tikendraw/open-o1.git
 
+# goto folder
 cd open-o1
 
+# make a virtual env
+python -m venv .venv
+
+# activate the virtual env
+source .venv/bin/activate
+
+# install requirements
+pip install -e .
+
+#finally run the server
 streamlit run app.py
+
 ```
 
 HAVE FUN.
