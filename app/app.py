@@ -1,14 +1,22 @@
+from operator import call
 import time
 import streamlit as st
 from core.generation_utils import generate_answer, load_llm
 from core.types import ThoughtStepsDisplay, BigMessage 
 from .app_config import InputConfig, ENV_FILE_PATH, CONFIG_FILE_PATH
 import litellm
+import os
+import webbrowser
 
-
+def star_repo():
+    webbrowser.open("https://github.com/tikendraw/open-o1")
 
 
 def config_sidebar(config:InputConfig) -> InputConfig:
+    
+    _ = st.button("Star the Repo!", callback=star_repo)
+    
+    
     st.sidebar.header('Configuration')
     model_name =    st.sidebar.text_input('Model Name: e.g. provider/model-name',value=config.model_name, placeholder='openai/gpt-3.5-turbo')
     model_api_key = st.sidebar.text_input('API Key: ',type='password',value=config.model_api_key, placeholder='sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
@@ -32,6 +40,11 @@ def config_sidebar(config:InputConfig) -> InputConfig:
     if st.sidebar.button('Save config'):
         config.save(env_file=ENV_FILE_PATH, config_file=CONFIG_FILE_PATH)
         st.sidebar.success('Config saved!')
+
+    if st.sidebar.button('Delete Key'):
+        os.remove(ENV_FILE_PATH)
+        config.model_api_key = ''
+        st.sidebar.success('Key deleted!')
         
     return config
 

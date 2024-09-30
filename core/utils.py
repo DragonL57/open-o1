@@ -3,7 +3,6 @@
 import re
 import json
 import ast
-from turtle import color
 from pydantic import ValidationError
 from termcolor import colored
 
