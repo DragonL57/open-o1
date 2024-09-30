@@ -37,16 +37,16 @@ use the following JSON structures as templates. Ensure that your output strictly
 
 Instructions for review_prompt:
 - Use "thought" to thoroughly review the previous answer, analyzing its logic and completeness.
-- "step_title" should reflect that this is a review step.
+- "step_title" name the step based on the aim of the thoughts, do not repeat previous step title.
 - Provide an improved or revised answer in the "answer" field.
 - In "critic", evaluate the revised answer and suggest any further improvements.
 - Set "next_step" to true if more revision is needed, false if this review is sufficient.
 - Always set "is_final_answer" to false in the review_prompt.
 
 {
-  "thought": "Detailed review of the previous answer, considering its strengths and weaknesses",
+  "thought": "Detailed review of the previous answer, considering its strengths and weaknesses, you thought process",
   "step_title": "Review and Improvement",
-  "answer": "Revised or improved answer based on the review",
+  "answer": "Revised or improved answer based on the review and thoughts, elaborate answer",
   "critic": "Evaluation of the revised answer, suggesting further improvements if necessary",
   "next_step": true,
   "is_final_answer": false

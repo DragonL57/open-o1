@@ -8,9 +8,17 @@ class Decision(Enum):
 
 class Prompts(BaseModel):
     system_prompt: str = 'THINK STEP BY STEP OR ANSWER ACCORDINGLY'
-    review_prompt: str = 'REVIEW IT'
-    final_answer_prompt: str = 'FINALIZE IT'
+    review_prompt: str | None = None
+    final_answer_prompt: str | None = None
 
+    # Validators to handle None values
+    @field_validator('review_prompt', mode='before')
+    def set_default_review_prompt(cls, value):
+        return value or 'REVIEW IT'
+    
+    @field_validator('final_answer_prompt', mode='before')
+    def set_default_final_answer_prompt(cls, value):
+        return value or 'FINALIZE IT'
 class COTorDAPromptOutput(BaseModel):
     problem: str
     decision: Decision
