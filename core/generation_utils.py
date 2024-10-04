@@ -18,7 +18,7 @@ from tenacity import retry, stop_after_attempt, wait_incrementing
 
 
 
-@retry(stop=stop_after_attempt(3), wait=wait_incrementing(increment=5))
+@retry(stop=stop_after_attempt(3), wait=wait_incrementing(increment=2))
 def cot_or_da_func(problem: str, llm: BaseLLM = None, **kwargs) -> COTorDAPromptOutput:
     
     cot_decision_message = [
