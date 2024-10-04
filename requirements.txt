@@ -1,4 +1,4 @@
-litellm==1.48.5litellm
+litellm==1.48.12
 streamlit
 openai>=1.46.0
 python-dotenv>=1.0.1
