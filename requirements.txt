@@ -1,0 +1,6 @@
+litellm==1.48.5litellm
+streamlit
+openai>=1.46.0
+python-dotenv>=1.0.1
+function-schema>=0.4.2
+termcolor>=2.4.0
